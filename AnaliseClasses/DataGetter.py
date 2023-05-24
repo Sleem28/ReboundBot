@@ -64,7 +64,7 @@ class DataGetter:
         req_counter = 0
         req_type = 'kline'
         loop = asyncio.get_running_loop()
-        # print(f'Cur weight {DataGetter.__WEIGHT}')
+
         while req_counter < req_limit:
             if DataGetter.__WEIGHT >= DataGetter.__WEIGHT_LIMIT:
                 print(f'Requests weight is more than limit {DataGetter.__WEIGHT}')
@@ -72,7 +72,6 @@ class DataGetter:
                 continue
             try:
                 req = await self.__client.futures_klines(symbol=symbol, interval=tf, limit=limit)
-                print(f'Kline data got by {symbol} {req_counter = }')
                 try:
                     df = pandas.DataFrame(req)
                     df = df.iloc[:, :6]
@@ -184,7 +183,6 @@ class DataGetter:
                 continue
             try:
                 req = await self.__client.futures_order_book(symbol=symbol, limit=limit)
-                print(f'Order book data got by {symbol}')
                 loop.call_soon(asyncio.create_task, self.__set_weight(req_type, limit))
                 return req
             except TimeoutError as e:
