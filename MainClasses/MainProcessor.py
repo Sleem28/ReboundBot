@@ -59,6 +59,8 @@ class MainProcessor:
 
         big_order_stay_time = 0                                  # Time of standing big orders
         check_new_orders = False                                 # Flag of new founded big orders
+
+        wrote_lvl_price = 0                                      # Price of the wrote level
         # --------------------------------------------------------------------------------------------------------------+
 
         async with self.__bm.aggtrade_futures_socket(symbol=symbol) as ts:
@@ -153,6 +155,15 @@ class MainProcessor:
                             second_big_order_price = orders_prices[1]
                             third_big_order_price = orders_prices[2]
 
+                            # Запишем в файл если было касание ценой первого уровня
+                            if cur_price == first_big_order_price:
+                                msg = f'Touch first order\n' \
+                                      f'Instrument: {symbol}\nTouch order date: {datetime.now()}\nSignal type: {signal_type}\n' \
+                                      f'Level price: {last_level.level_price}, ' \
+                                      f'level date: {last_level.level_date}' \
+                                      f'First order price: {first_big_order_price}'
+                                self.__info_writer.write_info(symbol, msg)
+
                             if first_big_order_price != first_control_order or \
                                     second_big_order_price != second_control_order or \
                                     third_big_order_price != third_control_order:
@@ -175,8 +186,9 @@ class MainProcessor:
                                          f'3 order: {third_big_order_price} {third_order_usdt}USDT\n' \
                                          f'Cluster pattern: {f"Found {signal_type}" if found_cluster_pattern else "None"}\n\n'
                                 print(e_info)
-                                if found_cluster_pattern:
-                                    last_cluster_bar.print_cluster_bar()
+                                # if found_cluster_pattern:
+                                #     last_cluster_bar.print_cluster_bar()
+
                                 self.__info_writer.write_info(symbol, e_info)
 
                             check_new_orders = True
