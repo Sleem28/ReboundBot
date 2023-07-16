@@ -153,4 +153,3 @@ class ClusterBar:
             digits += 1
             price *= 10
         return digits
-# TODO Пишем кластер и обработчик, ищем POC в верхней части 

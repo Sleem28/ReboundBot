@@ -79,15 +79,16 @@ class DataGetter:
                     df.Time = pd.to_datetime(df.Time, unit='ms')
                     loop.call_soon(asyncio.create_task, self.__set_weight(req_type, limit))
                     return df
-                except Exception as e:
-                    print(f'Error during getting klines info {req}')
-                    print(f'Error: {e}')
+                except KeyError as e:
+                    print(f'{symbol} {e}')
                     req_counter += 1
                     continue
             except TimeoutError:
-                print(f'{symbol} The error during getting a data from a server.')
                 await asyncio.sleep(1)
                 req_counter += 1
+                if req_counter == req_limit:
+                    print(f'{symbol} The error during getting klines from the server. Wait for 5 minutes')
+                    await asyncio.sleep(300)
                 continue
 
     async def __set_weight(self, req_type: str, limit=1) -> None:
