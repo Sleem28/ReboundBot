@@ -36,7 +36,7 @@ class LevelProcessor:
         while start_index > 2:
             finish_index = start_index + self.__VOL_SMA_PERIOD
             vol_avg = candles.iloc[start_index: finish_index].Volume.astype(
-                float).sum() / self.__VOL_SMA_PERIOD  # Поиск средней по объему
+                float).sum() / self.__VOL_SMA_PERIOD  # Finding SMA by volume
 
             first_candle = await self.__create_candle(candles.iloc[start_index - 2])
             second_candle = await self.__create_candle(candles.iloc[start_index - 1])

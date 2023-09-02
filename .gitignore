@@ -1,6 +1,4 @@
-.idea/
 keys.py
-Doc/
-__pycache__/
-test.py
-TestMethod.py
+venv/
+**/__pycache__/
+.idea/

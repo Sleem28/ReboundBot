@@ -1,4 +1,5 @@
 import pandas
+import logging
 from binance import AsyncClient
 import asyncio
 import config
@@ -15,6 +16,7 @@ class DataGetter:
 
     def __init__(self, client: AsyncClient):
         self.__client = client
+        self.__logger = logging.getLogger(__name__)
 
     async def get_exchange_info(self):
         """
@@ -32,8 +34,7 @@ class DataGetter:
                 self.__exchange_info = req
                 return
             except TimeoutError as e:
-                print(f'Error during getting an exchange info. {e}')
-                print(f'Error: {e}')
+                self.__logger.error(f'Error during getting an exchange info. {e}')
                 req_counter += 1
                 continue
 
@@ -48,8 +49,7 @@ class DataGetter:
             lst = list(df['symbol'])
             return lst
         except pd.errors.DataError as e:
-            print(f'Error during getting symbol names {e}')
-            print(f'Error: {e}')
+            self.__logger.error(f'Error during getting symbol names {e}')
             return []
 
     async def get_candles(self, symbol: str, tf: str, limit: int) -> pd.DataFrame:
@@ -67,7 +67,7 @@ class DataGetter:
 
         while req_counter < req_limit:
             if DataGetter.__WEIGHT >= DataGetter.__WEIGHT_LIMIT:
-                print(f'Requests weight is more than limit {DataGetter.__WEIGHT}')
+                self.__logger.info(f'Requests weight is more than limit {DataGetter.__WEIGHT}')
                 await asyncio.sleep(60)
                 continue
             try:
@@ -80,14 +80,14 @@ class DataGetter:
                     loop.call_soon(asyncio.create_task, self.__set_weight(req_type, limit))
                     return df
                 except KeyError as e:
-                    print(f'{symbol} {e}')
+                    self.__logger.error(f'Pandas error during getting candles from the dataframe by {symbol} {e}')
                     req_counter += 1
                     continue
             except TimeoutError:
                 await asyncio.sleep(1)
                 req_counter += 1
                 if req_counter == req_limit:
-                    print(f'{symbol} The error during getting klines from the server. Wait for 5 minutes')
+                    self.__logger.error(f'{symbol} The timeout error during getting candles from the server. Wait for 5 minutes')
                     await asyncio.sleep(300)
                 continue
 
@@ -143,7 +143,7 @@ class DataGetter:
         try:
             result = float(symbol_info.filters[symbol_info.index.values[0]][0]['tickSize'])
         except KeyError as e:
-            print(f'{symbol} {e}')
+            self.__logger.error(f'Pandas error during getting the tick size by {symbol} {e}')
             return result
         return result
 
@@ -179,7 +179,7 @@ class DataGetter:
 
         while req_counter < req_limit:
             if DataGetter.__WEIGHT >= DataGetter.__WEIGHT_LIMIT:
-                print(f'Requests weight is more than limit {DataGetter.__WEIGHT}')
+                self.__logger.error(f'Requests weight is more than limit {DataGetter.__WEIGHT} by {symbol}.')
                 await asyncio.sleep(60)
                 continue
             try:
@@ -187,7 +187,7 @@ class DataGetter:
                 loop.call_soon(asyncio.create_task, self.__set_weight(req_type, limit))
                 return req
             except TimeoutError as e:
-                print(f'{symbol} The error during getting an order book data from the server.')
+                self.__logger.error(f'The error during getting the order book data from the server by {symbol}.')
                 await asyncio.sleep(1)
                 req_counter += 1
                 if req_counter == req_limit:
@@ -222,6 +222,6 @@ class DataGetter:
                 else:
                     return True, book_dict
             except ValueError as e:
-                print(f'{symbol} {e}')
+                self.__logger.error(f'Value error during searching big orders by {symbol} {e}')
                 await asyncio.sleep(1)
                 continue
