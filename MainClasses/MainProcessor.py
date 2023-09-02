@@ -155,7 +155,7 @@ class MainProcessor:
                                 msg = f'\nTouch first order\n' \
                                       f'Instrument: {symbol}\nTouch order date: {datetime.now()}\nSignal type: {signal_type}\n' \
                                       f'Level price: {last_level.level_price}, ' \
-                                      f'level date: {last_level.level_date}' \
+                                      f'level date: {last_level.level_date}\n' \
                                       f'First order price: {first_big_order_price}'
                                 await self.__bot.send_message(settings.bots.admin_id, msg)
 
